@@ -39,6 +39,32 @@
     });
   }
 
+  // ---------- Mobile nav dropdown toggle ----------
+  function initNavToggle() {
+    const toggle = document.getElementById("nav-toggle");
+    const menu = document.getElementById("nav-menu");
+    if (!toggle || !menu) return;
+
+    toggle.addEventListener("click", () => {
+      const isOpen = menu.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+
+    menu.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", () => {
+        menu.classList.remove("open");
+        toggle.setAttribute("aria-expanded", "false");
+      });
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+        menu.classList.remove("open");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
   // ---------- Landing page: trail scroll-reveal + fill ----------
   function initTrail() {
     const trailWrap = document.querySelector(".trail-wrap");
@@ -213,6 +239,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     loadIncludes().then(() => {
       highlightNav();
+      initNavToggle();
       initTrail();
       initPlayer();
     });
