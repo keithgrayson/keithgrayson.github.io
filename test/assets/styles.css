@@ -167,11 +167,12 @@ a{color:inherit;}
   padding:2.6rem 1.5rem 1rem;
 }
 .page-hero img{
+  display:block;
   max-width:280px;
   width:70%;
+  margin:0 auto 1.2rem;
   border-radius:6px;
   box-shadow:0 16px 40px rgba(0,0,0,0.5);
-  margin-bottom:1.2rem;
 }
 .page-hero h1{
   font-family:'Space Grotesk', sans-serif;
@@ -198,6 +199,22 @@ a{color:inherit;}
   text-decoration:none;
 }
 .back-link:hover{ text-decoration:underline; }
+.ai-quote{
+  font-style:italic;
+  color:rgba(245,241,232,0.8);
+  background:rgba(228,213,183,0.06);
+  padding:1.1rem 1.3rem;
+  border-left:3px solid var(--teal);
+  border-radius:6px;
+  margin:1.6rem 0;
+}
+.ai-quote strong{
+  display:inline-block;
+  margin-top:0.6rem;
+  font-style:normal;
+  color:var(--teal);
+  font-size:0.85rem;
+}
 
 /* ---------- Track list (album pages) ---------- */
 .track-list{
