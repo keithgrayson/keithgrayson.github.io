@@ -168,7 +168,7 @@ a{color:inherit;}
 }
 .page-hero img{
   display:block;
-  max-width:280px;
+  max-width:400px;  /* was 280      */
   width:70%;
   margin:0 auto 1.2rem;
   border-radius:6px;
