@@ -1,137 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cowboys of Cloud 9</title>
-  <style>
-    body {
-      margin: 0;
-      background-color: #000;
-      color: #fff;
-      font-family: Verdana, sans-serif;
-      line-height: 1.6;
-      padding: 1rem;
-    }
-
-    .container {
-      max-width: 960px;
-      margin: auto;
-    }
-
-    header {
-      text-align: center;
-      padding-bottom: 1.5rem;
-    }
-
-    header img {
-      width: 150px;
-      height: auto;
-    }
-
-    h1 {
-      font-family: "Monotype Corsiva", cursive;
-      font-size: 2.5rem;
-      color: #00f;
-      margin-top: 0.5rem;
-    }
-
-    a {
-      color: #0f0;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .section {
-      margin-top: 2rem;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 3rem;
-      font-size: 0.9rem;
-    }
-
-    @media (min-width: 600px) {
-      .header-flex {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1.5rem;
-      }
-
-      header img {
-        width: 180px;
-      }
-
-      h1 {
-        font-size: 3rem;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cowboys of Cloud 9</title>
+<meta name="description" content="Free computer-generated alt-country music from the Cowboys of Cloud 9, shared here for friends and curious strangers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="header-flex">
-        <img src="COWBOYSOFCLOUD9.jpg" alt="Cowboys of Cloud 9" />
-        <h1>Cowboys of Cloud 9</h1>
-      </div>
-    </header>
 
-    <div class="section">
-      <p>This is where I share my interest in computer-generated music with friends, and the occasional stranger who wanders in from somewhere else on the web. I've always been drawn to the math underneath music — Fourier transforms, harmonic overtones, the way a waveform breaks down into simple sine components — and to what that structure does to the brain: why a minor third feels wistful, why a steady pulse can lower your heart rate, why some chord progressions make you tear up for no clear reason. The Cowboys of Cloud 9 are my way of playing with those ideas directly. They aren't a band in any human sense — no members, no rehearsals, no green room. They exist only as the flow of energy through silicon, and they've settled, somewhat to my surprise, into a genre of futuristic, synthetic cowboys playing alt country out past the edge of the solar system.</p>
-    </div>
+<div class="stars" aria-hidden="true"></div>
 
-    <div class="section">
+<div data-include="partials/nav.html"></div>
+
+<header class="hero">
+  <h1>Cowboys of Cloud 9</h1>
+  <p class="tagline">Computer-generated music, shared freely</p>
+  <img class="hero-art" src="COWBOYSOFCLOUD9.jpg" alt="Cowboys of Cloud 9 cover art">
+  <p class="intro">
+    This is where I share my interest in computer-generated music with friends, and the occasional
+    stranger who wanders in from somewhere else on the web. I've always been drawn to the math
+    underneath music &mdash; Fourier transforms, harmonic overtones, the way a waveform breaks down
+    into simple sine components &mdash; and to what that structure does to the brain: why a minor
+    third feels wistful, why a steady pulse can lower your heart rate, why some chord progressions
+    make you tear up for no clear reason. The Cowboys of Cloud 9 are my way of playing with those
+    ideas directly. They aren't a band in any human sense &mdash; no members, no rehearsals, no
+    green room. They exist only as the flow of energy through silicon, and they've settled,
+    somewhat to my surprise, into a genre of futuristic, synthetic cowboys playing alt country out
+    past the edge of the solar system.
+  </p>
+  <p class="intro" style="margin-top:1.2rem;">
+    Follow the trail below &mdash; it runs from the frontiers of Mars all the way back home to the
+    shoreline.
+  </p>
+</header>
+
+<main class="trail-wrap">
+  <div class="trail-line" id="trailLine" aria-hidden="true"></div>
+
+  <section class="chapter">
+    <span class="waypoint"></span>
+    <span class="waypoint-label eyebrow">Mars</span>
+    <article class="card">
+      <img class="card-cover" src="Memories.JPG" alt="Memories of Mars cover">
+      <span class="eyebrow">Chapter One</span>
+      <h2>Memories of Mars</h2>
       <p>
-        The Cowboys take their music to the frontiers of space with their
-        <a href="memories.html">Memories of Mars</a> series. It features several favorites including
-        'Drifting Souls', 'Floating on the Marineris River', 'Faces in the Cloud' and the signature track 'Cowboys of Cloud 9'.
+        The Cowboys take their music to the frontiers of space with their Memories of Mars series,
+        an instrumental journey to the thunderous realms of Cloud 9 &mdash; drifting souls, the
+        Marineris River, and faces in the cloud under a starry sky.
       </p>
-    </div>
+      <p class="tracks">Drifting Souls &middot; Floating on the Marineris River &middot; Faces in the Cloud &middot; Cowboys of Cloud 9</p>
+      <a class="listen-btn" href="memories.html">Listen &#9656;</a>
+    </article>
+  </section>
 
-    <div class="section">
+  <section class="chapter">
+    <span class="waypoint"></span>
+    <span class="waypoint-label eyebrow">Deep Space</span>
+    <article class="card">
+      <img class="card-cover" src="AllElectricWeb.JPG" alt="All Electric Intergalactic Outhouse cover">
+      <span class="eyebrow">Chapter Two</span>
+      <h2>All Electric Intergalactic Outhouse</h2>
       <p>
-        Then the Cowboys travel to the back 40 of deep space with their
-        <a href="allelectric.html">All Electric Intergalactic Outhouse</a> series. It features 'Cowboy Concerto in C',
-        'Milky Way Breezes', 'Grandpa’s Picking All Night Long', and the all-time favorite 'Sometimes Late at Night (I Hear Angels Singing)'.
+        The Cowboys travel to the back 40 of deep space with Cowboy Concerto in C, Milky Way
+        Breezes, Grandpa's Picking All Night Long, and the all-time favorite Sometimes Late at
+        Night (I Hear Angels Singing).
       </p>
-    </div>
+      <a class="listen-btn" href="allelectric.html">Listen &#9656;</a>
+    </article>
+  </section>
 
-    <div class="section">
+  <section class="chapter">
+    <span class="waypoint"></span>
+    <span class="waypoint-label eyebrow">Horizon</span>
+    <article class="card">
+      <img class="card-cover" src="cd3.jpg" alt="All Electric Intergalactic Outhouse cover">
+      <span class="eyebrow">Chapter Three</span>
+      <h2>Someday Soon</h2>
       <p>
-        The Cowboys look forward with their latest collection of the 
-        <a href="cd3.html">Someday Soon</a> series. It features 'Campfire by the Water', 'She Must Be My Angel',
-         and 'We'll Watch the Sun Set in Heaven'.
+        The Cowboys look forward with their latest collection: Campfire by the Water, She Must
+        Be My Angel, and We'll Watch the Sun Set in Heaven.
       </p>
-    </div>
+      <a class="listen-btn" href="cd3.html">Listen &#9656;</a>
+    </article>
+  </section>
 
-    <div class="section">
+  <section class="chapter">
+    <span class="waypoint"></span>
+    <span class="waypoint-label eyebrow">Home</span>
+    <article class="card">
+      <img class="card-cover" src="CoastalCollection.jpg" alt="Forever Yours cover">
+      <span class="eyebrow">Chapter Four</span>
+      <h2>Forever Yours</h2>
       <p>
-        The Cowboys trade the stars for the shoreline with 
-        <a href="foreveryours.html">Forever Yours</a>, 
-        a collection written closer to home. It features 'Coldwater Creek', 'My Hula Girl', 
-        'Steady as the Rising Tide', and the title track 'Forever Yours'.
+        The Cowboys trade the stars for the shoreline with a collection written closer to home:
+        Coldwater Creek, My Hula Girl, Steady as the Rising Tide, and the title track Forever Yours.
       </p>
-    </div>
-    
-    <div class="section">
-      <p>
-        And finally an experimental collaboration with AI. The Cowboys play songs created by Claude and Grok. This series of songs are created
-        through the programming skills of Claude combined with the musical skills of Grok. This is still a work in progress,
-        but there are a few sample clips <a href="cosmic.html">here</a>.
-      </p>
-    </div>
+      <a class="listen-btn" href="foreveryours.html">Listen &#9656;</a>
+    </article>
+  </section>
 
-    <footer>
-      Email: <a href="mailto:keith@keithgrayson.com">keith@keithgrayson.com</a>
-    </footer>
-  </div>
+  <section class="chapter">
+    <span class="waypoint"></span>
+    <span class="waypoint-label eyebrow">Signal</span>
+    <article class="card experimental">
+      <img class="card-cover" src="CC9RobotCowboyBand.png" alt="Cosmic Collaboration cover">
+      <span class="eyebrow">In Progress &middot; AI Collaboration</span>
+      <h2>Cosmic Collaboration</h2>
+      <p>
+        An experimental collaboration with AI: the Cowboys play chord-progression sketches built
+        through the programming skills of Claude and the rhythmic instincts of Grok &mdash; raw
+        working material for songs still to come.
+      </p>
+      <a class="listen-btn" href="cosmic.html">Listen to sketches &#9656;</a>
+    </article>
+  </section>
+
+  <p class="trail-end">&hellip; the trail continues</p>
+</main>
+
+<div data-include="partials/footer.html"></div>
+
+<script src="assets/site.js" defer></script>
+
 </body>
 </html>
- 
