@@ -7,6 +7,36 @@
 (function () {
   "use strict";
 
+  // ---------- Analytics (GoatCounter) ----------
+  // Free, privacy-respecting, no cookies. Sign up at https://www.goatcounter.com/
+  // and replace the endpoint below with your own site's count URL.
+  const GOATCOUNTER_ENDPOINT = "https://keithgrayson.goatcounter.com/count";
+
+  function loadAnalytics() {
+    if (GOATCOUNTER_ENDPOINT.indexOf("YOUR-CODE") !== -1) {
+      // Not configured yet - skip silently rather than pinging a fake domain.
+      return;
+    }
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://gc.zgo.at/count.js";
+    script.setAttribute("data-goatcounter", GOATCOUNTER_ENDPOINT);
+    document.head.appendChild(script);
+  }
+
+  // Logs a custom event (play or download) as its own path in the
+  // GoatCounter dashboard, e.g. "play/cd1/Drifting Souls.mp3".
+  // Nothing renders on the page - purely a backend count.
+  function trackEvent(kind, path, title) {
+    if (window.goatcounter && typeof window.goatcounter.count === "function") {
+      window.goatcounter.count({
+        path: kind + "/" + decodeURIComponent(path),
+        title: title,
+        event: true,
+      });
+    }
+  }
+
   // ---------- Partial include helper ----------
   // Looks for elements like <div data-include="partials/nav.html"></div>
   // and replaces them with the fetched HTML.
@@ -167,6 +197,7 @@
       setActiveRow(index);
       bar.classList.add("active");
       document.body.classList.add("player-active");
+      trackEvent("play", t.src, t.title);
     }
 
     tracks.forEach((t, i) => {
@@ -180,6 +211,12 @@
           } else {
             playTrack(i);
           }
+        });
+      }
+      const downloadLink = t.row.querySelector("a[download]");
+      if (downloadLink) {
+        downloadLink.addEventListener("click", () => {
+          trackEvent("download", t.src, t.title);
         });
       }
     });
@@ -237,6 +274,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    loadAnalytics();
     loadIncludes().then(() => {
       highlightNav();
       initNavToggle();
