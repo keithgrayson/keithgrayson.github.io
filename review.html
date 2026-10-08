@@ -19,6 +19,9 @@
   #song-title { font:600 clamp(1.3rem,4vw,1.8rem) 'Space Grotesk',sans-serif; color:var(--dune); margin:1.2rem 0 .2rem; }
   #track-count { font:.76rem 'Space Mono',monospace; color:var(--teal); margin:0; }
   #status { min-height:1.5em; color:var(--dune-shadow); }
+  .lyrics-section { margin:1.5rem 0 1.7rem; }
+  .lyrics-section h3 { color:var(--dune); font:600 1.1rem 'Space Grotesk',sans-serif; margin:0 0 .6rem; }
+  #lyrics-text { max-height:320px; overflow-y:auto; white-space:pre-wrap; overflow-wrap:break-word; padding:1.1rem 1.25rem; border:1px solid rgba(79,124,116,.55); border-radius:7px; background:var(--void-deep); color:var(--starlight); font:.95rem/1.7 'Work Sans',sans-serif; }
   .review-note { color:rgba(245,241,232,.68); font-size:.9rem; }
   .track-row .t-title { min-width:0; overflow-wrap:anywhere; }
   .track-row a[download] { color:var(--dune); font-size:1.4rem; text-decoration:none; padding:.1rem .3rem; flex:0 0 auto; }
@@ -43,6 +46,10 @@
     <h2 id="song-title">Select a song</h2>
     <p id="track-count"></p>
     <p id="status" role="status" aria-live="polite"></p>
+    <section class="lyrics-section" aria-labelledby="lyrics-heading">
+      <h3 id="lyrics-heading">Lyrics</h3>
+      <div id="lyrics-text" role="region" aria-label="Song lyrics" tabindex="0">Select a song to view its lyrics.</div>
+    </section>
     <ul id="track-list" class="track-list" aria-label="Available MP3 takes"></ul>
   </section>
   <p class="review-note">These recordings are unreleased works in progress and may be subject to collaborator's copyright restriction.</p>
@@ -68,6 +75,7 @@
   const count = document.getElementById('track-count');
   const status = document.getElementById('status');
   const list = document.getElementById('track-list');
+  const lyrics = document.getElementById('lyrics-text');
   const bar = document.getElementById('player-bar');
   const audio = new Audio();
   const toggle = bar.querySelector('.pb-toggle');
@@ -109,8 +117,8 @@
   }
   async function chooseFolder(folder) {
     const ticket=++requestId;
-    resetPlayer(); tracks=[]; list.replaceChildren(); title.textContent='Loading…'; count.textContent=''; status.textContent='Loading song takes…';
-    if (!folder) { title.textContent='Select a song'; status.textContent=''; return; }
+    resetPlayer(); tracks=[]; list.replaceChildren(); lyrics.textContent='Loading lyrics…'; title.textContent='Loading…'; count.textContent=''; status.textContent='Loading song takes…';
+    if (!folder) { title.textContent='Select a song'; status.textContent=''; lyrics.textContent='Select a song to view its lyrics.'; return; }
     try {
       const entries=await json(`${API}/${encodeURIComponent(folder)}`);
       if (ticket!==requestId) return;
@@ -128,6 +136,21 @@
       }
       if (ticket!==requestId) return;
       title.textContent=songTitle;
+      const lyricsFile=entries.find(f=>f.type==='file' && f.name.toLowerCase()==='lyrics.txt');
+      if (lyricsFile) {
+        try {
+          const response=await fetch(fileURL(folder,lyricsFile.name));
+          if (!response.ok) throw new Error('Lyrics unavailable');
+          const content=(await response.text()).replace(/^\uFEFF/,'').trim();
+          if (ticket!==requestId) return;
+          lyrics.textContent=content || 'No lyrics have been added for this song.';
+        } catch (error) {
+          if (ticket!==requestId) return;
+          lyrics.textContent='Lyrics could not be loaded.';
+          console.warn(error);
+        }
+      } else lyrics.textContent='No lyrics.txt file found for this song.';
+      lyrics.scrollTop=0;
       const mp3s=entries.filter(f=>f.type==='file' && /\.mp3$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
       count.textContent=`${mp3s.length} ${mp3s.length===1?'take':'takes'}`;
       status.textContent=mp3s.length ? '' : 'No MP3 recordings are currently available for this song.';
@@ -150,7 +173,7 @@
       const pageUrl=new URL(location.href); pageUrl.searchParams.set('song',folder); history.replaceState(null,'',pageUrl);
     } catch(error) {
       if(ticket!==requestId) return;
-      title.textContent=folder; status.textContent=`Could not load this folder. ${error.message}`;
+      title.textContent=folder; lyrics.textContent='Lyrics unavailable.'; status.textContent=`Could not load this folder. ${error.message}`;
     }
   }
   async function init() {
