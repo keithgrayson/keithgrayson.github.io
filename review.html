@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Song Takes Review — Keith Grayson</title>
+<meta name="description" content="Preliminary song takes for invited collaborators.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cc9/assets/styles.css">
+<style>
+  /* Page-specific rules only; shared CSS remains unchanged. */
+  .review-controls { margin:1.8rem 0 1.2rem; }
+  .review-controls label { display:block; margin-bottom:.5rem; color:var(--teal); font: .76rem 'Space Mono',monospace; letter-spacing:.08em; text-transform:uppercase; }
+  #song-select { width:100%; padding:.8rem 1rem; border:1px solid var(--teal); border-radius:7px; background:var(--void-deep); color:var(--starlight); font:1rem 'Work Sans',sans-serif; }
+  #song-select:focus-visible, button:focus-visible, a:focus-visible { outline:2px solid var(--dune); outline-offset:3px; }
+  #song-title { font:600 clamp(1.3rem,4vw,1.8rem) 'Space Grotesk',sans-serif; color:var(--dune); margin:1.2rem 0 .2rem; }
+  #track-count { font:.76rem 'Space Mono',monospace; color:var(--teal); margin:0; }
+  #status { min-height:1.5em; color:var(--dune-shadow); }
+  .review-note { color:rgba(245,241,232,.68); font-size:.9rem; }
+  .track-row .t-title { min-width:0; overflow-wrap:anywhere; }
+  .track-row a[download] { color:var(--dune); font-size:1.4rem; text-decoration:none; padding:.1rem .3rem; flex:0 0 auto; }
+  .track-row a[download]:hover { color:var(--rust); }
+  .review-header { padding-top:3.8rem; }
+  @media(max-width:480px) { .track-row { gap:.5rem; padding:.6rem; } .track-row .t-num { min-width:1em; } .track-row .t-len { min-width:2.5em; } }
+</style>
+</head>
+<body>
+<div class="stars" aria-hidden="true"></div>
+<header class="page-hero review-header">
+  <span class="eyebrow">Keith Grayson · Music Collaboration</span>
+  <h1>Song Takes Review</h1>
+</header>
+<main class="page-body">
+  <p>Select a song to listen to preliminary takes. Use the play button to listen or the download icon to save an MP3.</p>
+  <div class="review-controls">
+    <label for="song-select">Select song</label>
+    <select id="song-select" disabled><option>Loading song folders…</option></select>
+  </div>
+  <section aria-labelledby="song-title">
+    <h2 id="song-title">Select a song</h2>
+    <p id="track-count"></p>
+    <p id="status" role="status" aria-live="polite"></p>
+    <ul id="track-list" class="track-list" aria-label="Available MP3 takes"></ul>
+  </section>
+  <p class="review-note">These recordings are works in progress and may change.</p>
+</main>
+<!-- Same player markup and CSS classes as cc9/partials/player-bar.html. -->
+<div id="player-bar" aria-label="Audio player">
+  <button type="button" class="pb-prev" aria-label="Previous track">&#9198;</button>
+  <button type="button" class="pb-toggle" aria-label="Play or pause">&#9658;</button>
+  <button type="button" class="pb-next" aria-label="Next track">&#9197;</button>
+  <span class="pb-title">&nbsp;</span>
+  <div class="pb-progress"><input type="range" class="pb-seek" min="0" max="100" value="0" step="0.1" aria-label="Seek"></div>
+  <span class="pb-time">0:00 / 0:00</span>
+  <button type="button" class="pb-close" aria-label="Close player">&times;</button>
+</div>
+<script>
+(() => {
+  'use strict';
+  const REPO = 'keithgrayson/keithgrayson.github.io';
+  const API = `https://api.github.com/repos/${REPO}/contents/Audio`;
+  const AUDIO_BASE = new URL('Audio/', location.href);
+  const select = document.getElementById('song-select');
+  const title = document.getElementById('song-title');
+  const count = document.getElementById('track-count');
+  const status = document.getElementById('status');
+  const list = document.getElementById('track-list');
+  const bar = document.getElementById('player-bar');
+  const audio = new Audio();
+  const toggle = bar.querySelector('.pb-toggle');
+  const seek = bar.querySelector('.pb-seek');
+  const time = bar.querySelector('.pb-time');
+  let tracks = [], current = -1, requestId = 0;
+  const fmt = seconds => Number.isFinite(seconds) ? `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}` : '0:00';
+  const fileURL = (folder, filename) => new URL(`${encodeURIComponent(folder)}/${encodeURIComponent(filename)}`, AUDIO_BASE).href;
+  async function json(url) {
+    const response = await fetch(url, {headers:{Accept:'application/vnd.github+json'}});
+    if (!response.ok) throw new Error(`GitHub directory request failed (${response.status}).`);
+    return response.json();
+  }
+  function resetPlayer() {
+    audio.pause(); audio.removeAttribute('src'); audio.load();
+    current = -1; seek.value = 0; time.textContent = '0:00 / 0:00';
+    bar.classList.remove('active'); document.body.classList.remove('player-active');
+    toggle.textContent = '▶'; bar.querySelector('.pb-title').textContent = '';
+    updateButtons();
+  }
+  function updateButtons() {
+    tracks.forEach((t,i) => {
+      t.row.classList.toggle('playing', i===current);
+      t.button.classList.toggle('is-playing', i===current && !audio.paused);
+      t.button.textContent = i===current && !audio.paused ? '⏸' : '▶';
+      t.button.setAttribute('aria-label', `${i===current && !audio.paused ? 'Pause' : 'Play'} ${t.name}`);
+    });
+    toggle.textContent = audio.paused ? '▶' : '❚❚';
+    bar.querySelector('.pb-prev').disabled = current<=0;
+    bar.querySelector('.pb-next').disabled = current<0 || current>=tracks.length-1;
+  }
+  function play(index) {
+    if (index<0 || index>=tracks.length) return;
+    if (current!==index) { current=index; audio.src=tracks[index].url; }
+    bar.querySelector('.pb-title').textContent = tracks[index].name;
+    bar.classList.add('active'); document.body.classList.add('player-active');
+    audio.play().catch(() => { status.textContent='Unable to play this MP3.'; updateButtons(); });
+    updateButtons();
+  }
+  async function chooseFolder(folder) {
+    const ticket=++requestId;
+    resetPlayer(); tracks=[]; list.replaceChildren(); title.textContent='Loading…'; count.textContent=''; status.textContent='Loading song takes…';
+    if (!folder) { title.textContent='Select a song'; status.textContent=''; return; }
+    try {
+      const entries=await json(`${API}/${encodeURIComponent(folder)}`);
+      if (ticket!==requestId) return;
+      if (!Array.isArray(entries)) throw new Error('Unexpected folder listing.');
+      const readme=entries.find(f=>f.type==='file' && f.name.toLowerCase()==='read.me');
+      let songTitle=folder;
+      if (readme) {
+        try {
+          const response=await fetch(fileURL(folder,readme.name));
+          if (!response.ok) throw new Error('read.me unavailable');
+          const lines=(await response.text()).replace(/^\uFEFF/,'').split(/\r?\n/);
+          const match=(lines[1]||'').match(/^\s*Title\s*:\s*(.*?)\s*$/i);
+          if (match && match[1]) songTitle=match[1];
+        } catch (error) { console.warn('Song title unavailable:',error); }
+      }
+      if (ticket!==requestId) return;
+      title.textContent=songTitle;
+      const mp3s=entries.filter(f=>f.type==='file' && /\.mp3$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+      count.textContent=`${mp3s.length} ${mp3s.length===1?'take':'takes'}`;
+      status.textContent=mp3s.length ? '' : 'No MP3 recordings are currently available for this song.';
+      for (const [i,file] of mp3s.entries()) {
+        const name=file.name.replace(/\.mp3$/i,'');
+        const url=fileURL(folder,file.name);
+        const row=document.createElement('li'); row.className='track-row'; row.dataset.title=name; row.dataset.src=url;
+        const number=document.createElement('span'); number.className='t-num'; number.textContent=`${i+1}.`;
+        const button=document.createElement('button'); button.type='button'; button.className='play-btn'; button.textContent='▶'; button.setAttribute('aria-label',`Play ${name}`);
+        const label=document.createElement('span'); label.className='t-title'; label.textContent=name;
+        const length=document.createElement('span'); length.className='t-len';
+        const download=document.createElement('a'); download.href=url; download.download=file.name; download.textContent='⇩'; download.setAttribute('aria-label',`Download ${file.name}`);
+        row.append(number,button,label,length,download); list.append(row);
+        tracks.push({name,url,row,button,length});
+        button.addEventListener('click',()=>{ if(current===i && !audio.paused) audio.pause(); else play(i); });
+        const probe=new Audio(); probe.preload='metadata'; probe.src=url;
+        probe.addEventListener('loadedmetadata',()=>{ if(ticket===requestId) length.textContent=fmt(probe.duration); },{once:true});
+      }
+      updateButtons();
+      const pageUrl=new URL(location.href); pageUrl.searchParams.set('song',folder); history.replaceState(null,'',pageUrl);
+    } catch(error) {
+      if(ticket!==requestId) return;
+      title.textContent=folder; status.textContent=`Could not load this folder. ${error.message}`;
+    }
+  }
+  async function init() {
+    try {
+      const folders=(await json(API)).filter(item=>item.type==='dir').sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base'}));
+      select.replaceChildren();
+      const prompt=new Option('Choose a song…',''); select.add(prompt);
+      folders.forEach(folder=>select.add(new Option(folder.name,folder.name)));
+      select.disabled=!folders.length;
+      if (!folders.length) { status.textContent='No song folders found.'; return; }
+      const requested=new URLSearchParams(location.search).get('song');
+      const initial=folders.some(f=>f.name===requested)?requested:folders[0].name;
+      select.value=initial; await chooseFolder(initial);
+    } catch(error) {
+      select.replaceChildren(new Option('Unable to load folders',''));
+      status.textContent=`Could not load song folders. ${error.message} Please try again later.`;
+    }
+  }
+  select.addEventListener('change',()=>chooseFolder(select.value));
+  toggle.addEventListener('click',()=>{ if(current<0) play(0); else if(audio.paused) audio.play().catch(console.error); else audio.pause(); });
+  bar.querySelector('.pb-prev').addEventListener('click',()=>play(current-1));
+  bar.querySelector('.pb-next').addEventListener('click',()=>play(current+1));
+  bar.querySelector('.pb-close').addEventListener('click',resetPlayer);
+  seek.addEventListener('input',()=>{if(Number.isFinite(audio.duration)&&audio.duration>0) audio.currentTime=audio.duration*Number(seek.value)/100;});
+  audio.addEventListener('play',updateButtons); audio.addEventListener('pause',updateButtons);
+  audio.addEventListener('timeupdate',()=>{ if(Number.isFinite(audio.duration)&&audio.duration>0) {seek.value=String(100*audio.currentTime/audio.duration);time.textContent=`${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;} });
+  audio.addEventListener('ended',()=>{if(current<tracks.length-1)play(current+1);else resetPlayer();});
+  init();
+})();
+</script>
+</body>
+</html>
