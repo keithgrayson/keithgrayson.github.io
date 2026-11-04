@@ -1,0 +1,19 @@
+name: Compare YouTube uploads with website
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare YouTube uploads
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python3 scripts/check_youtube_videos.py
+      - name: Upload comparison report
+        uses: actions/upload-artifact@v4
+        with:
+          name: youtube-video-report
+          path: youtube-video-report.md
