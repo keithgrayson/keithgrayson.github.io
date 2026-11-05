@@ -1,6 +1,11 @@
 name: Compare YouTube uploads with website
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/youtube-check-trigger.txt
 permissions:
   contents: write
 jobs:
