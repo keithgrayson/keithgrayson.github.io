@@ -1,0 +1,4 @@
+YouTube comparison trigger
+
+This file can be updated on request to run the YouTube comparison GitHub Action.
+Only changes to this file trigger the push-based comparison workflow.
