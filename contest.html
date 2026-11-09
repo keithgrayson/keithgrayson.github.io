@@ -4,7 +4,7 @@
 .contest-wrap{max-width:900px;margin:auto;padding:2rem 1rem 8rem}.contest-top{padding:3rem 1rem 1rem;text-align:center}.contest-top h1{font-size:clamp(2rem,6vw,3.3rem);margin:.5rem 0}.contest-sub{opacity:.8}.panel{border:1px solid rgba(79,124,116,.6);border-radius:12px;padding:1.3rem;margin:1.3rem 0;background:var(--void-deep)}.field{width:100%;padding:.8rem;border-radius:8px;background:var(--void-deep);color:var(--starlight);border:1px solid var(--teal)}.btn{background:var(--teal);color:white;border:0;border-radius:8px;padding:.8rem 1.2rem;cursor:pointer;font-weight:600;font-size:1rem;font-family:inherit}.btn:disabled{opacity:.45;cursor:not-allowed}.track{display:flex;align-items:center;gap:.8rem;border-bottom:1px solid rgba(79,124,116,.3);padding:.9rem 0}.track.active{background:rgba(79,124,116,.22);border-left:3px solid var(--teal);padding-left:.6rem}.now-playing{font-weight:600;margin:.5rem 0}.track-name{flex:1;min-width:0;overflow-wrap:anywhere}.track button{background:transparent;border:1px solid var(--teal);border-radius:8px;color:var(--starlight);padding:.55rem;cursor:pointer}.track input{width:1.3rem;height:1.3rem;accent-color:var(--teal)}.muted{opacity:.75}.error{color:#ffb3a5}.success{color:#9ee1bc}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto}.hidden{display:none!important}audio{width:100%;margin-top:1rem}button:focus-visible,input:focus-visible{outline:2px solid var(--dune);outline-offset:3px}
 </style></head><body><div class="stars" aria-hidden="true"></div><header class="contest-top"><span class="eyebrow">Youth Group Music Project</span><h1>Producer Studio</h1></header><main class="contest-wrap">
 <section id="entry" class="panel"><h2>Enter your team code</h2><p>Use the code in your team's invitation link, or enter it below.</p><form id="entry-form"><label for="code">Team access code</label><input class="field" id="code" autocomplete="off" required placeholder="Enter code"><p><button class="btn">Open studio</button></p></form><p id="entry-status" role="alert"></p></section>
-<section id="studio" class="hidden"><div class="panel"><p class="eyebrow" id="team-label"></p><h2 id="song-title"></h2><p id="song-count"></p><h3>Lyrics</h3><pre id="lyrics" class="muted"></pre></div><div class="panel"><h2>Listen and nominate two takes</h2><p>Listen, discuss, and choose exactly two favorites as a team. The order does not imply a ranking.</p><div id="tracks"></div><p id="now-playing" class="now-playing" aria-live="polite">Nothing playing</p><audio id="audio" controls preload="none" aria-label="Audio preview"></audio></div><div class="panel"><h2>Team selections</h2><p id="selection-status" aria-live="polite">Choose two takes.</p><label for="notes">Why did you choose these? (optional)</label><textarea id="notes" class="field" rows="3" maxlength="1000" placeholder="What made these versions stand out?"></textarea><p><button id="submit" class="btn" disabled>Submit team nominations</button></p><p id="submit-status" role="status"></p></div></section>
+<section id="studio" class="hidden"><div class="panel"><p class="eyebrow" id="team-label"></p><h2 id="song-title"></h2><p id="song-count"></p><h3>Lyrics</h3><pre id="lyrics" class="muted"></pre></div><div class="panel"><h2>Listen and nominate two takes</h2><p>Listen, discuss, and choose exactly two favorites as a team. The order does not imply a ranking.</p><div id="tracks"></div><p id="now-playing" class="now-playing" aria-live="polite">Nothing playing</p><audio id="audio" controls preload="none" aria-label="Audio preview"></audio></div><div class="panel"><h2>Team selections</h2><p id="selection-status" aria-live="polite">Choose two takes.</p><label for="notes">Why did you choose these? (optional)</label><textarea id="notes" class="field" rows="3" maxlength="1000" placeholder="What made these versions stand out?"></textarea><p><button id="submit" class="btn" disabled>Open email to submit nominations</button> <button id="copy-submission" class="btn" type="button" disabled>Copy submission</button></p><p id="submit-status" role="status"></p></div></section>
 <p class="muted">These recordings are works in progress. Please do not share or publish them without permission.</p></main>
 <script>
 (()=>{
@@ -17,7 +17,6 @@ const TEAMS={
   'DEMO-TEAM-3':{name:'Team 3',folder:'Contests/Youth-Contest-001/Team-3'},
   'DEMO-TEAM-4':{name:'Team 4',folder:'Contests/Youth-Contest-001/Team-4'}
 };
-const SUBMISSION_ENDPOINT=''; // HTTPS endpoint that validates code, folder, exactly two IDs, and one vote per team.
 const API='https://api.github.com/repos/keithgrayson/keithgrayson.github.io/contents/Audio/';
 const BASE=new URL('Audio/',location.href);
 const CONTEST_FOLDER='Contests/Youth-Contest-001';
@@ -52,20 +51,23 @@ async function openTeam(code){
  el('entry').classList.add('hidden');el('studio').classList.remove('hidden');el('entry-status').textContent='';update();
  }catch(e){el('entry-status').textContent=e.message;}
 }
-function update(){el('selection-status').textContent=chosen.size+' of 2 takes selected';el('submit').disabled=chosen.size!==2;}
+function update(){el('selection-status').textContent=chosen.size+' of 2 takes selected';el('submit').disabled=chosen.size!==2;el('copy-submission').disabled=chosen.size!==2;}
 el('entry-form').onsubmit=e=>{e.preventDefault();openTeam(el('code').value.trim().toUpperCase());};
-el('submit').onclick=async()=>{
- if(!team||chosen.size!==2)return;
- const payload={teamCode:team.code,folder:team.folder,selections:[...chosen],notes:el('notes').value.trim()};
- if(!SUBMISSION_ENDPOINT){
- el('submit-status').textContent='Demo mode: voting has not been connected. Copy your selections and send them to the organizer; no vote has been recorded.';
- const report=team.name+' | '+team.folder+'\n'+payload.selections.join('\n')+'\n'+payload.notes;
- try{await navigator.clipboard.writeText(report);el('submit-status').textContent+=' Selections copied to clipboard.';}catch{el('submit-status').textContent+=' '+report;}
- return;
- }
- el('submit').disabled=true;el('submit-status').textContent='Submitting…';
- try{const r=await fetch(SUBMISSION_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok)throw Error('Submission rejected ('+r.status+').');el('submit-status').className='success';el('submit-status').textContent='Selections received. Thank you!';}
- catch(e){el('submit-status').className='error';el('submit-status').textContent='Submission not saved: '+e.message;el('submit').disabled=false;}
+function submissionText(){
+ if(!team||chosen.size!==2)return null;
+ return 'Contest: Youth-Contest-001\nTeam: '+team.name+'\nTeam code: '+team.code+'\n\nSelected Takes:\n'+[...chosen].map((name,i)=>(i+1)+'. '+name).join('\n')+'\n\nTeam Comments:\n'+(el('notes').value.trim()||'(none)');
+}
+el('submit').onclick=()=>{
+ const body=submissionText();if(!body)return;
+ const subject='Youth Music Contest - '+team.name+' Nominations';
+ const mailto='mailto:verseandvariation@proton.me?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+ el('submit-status').textContent='Your email application should open with the nominations filled in. Review the message and click Send. No nomination is recorded until you send the email. If nothing opens, use Copy submission.';
+ window.location.href=mailto;
+};
+el('copy-submission').onclick=async()=>{
+ const body=submissionText();if(!body)return;
+ try{await navigator.clipboard.writeText(body);el('submit-status').textContent='Submission copied. Paste it into an email to verseandvariation@proton.me and send it.';}
+ catch{el('submit-status').textContent='Copy unavailable. Please select and copy the following submission:\n'+body;}
 };
 const code=new URLSearchParams(location.search).get('code');if(code){el('code').value=code.toUpperCase();openTeam(code.toUpperCase());}
 })();
