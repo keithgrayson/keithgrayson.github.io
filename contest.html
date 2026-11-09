@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Youth Music Contest | Producer Studio</title><link rel="stylesheet" href="cc9/assets/styles.css">
+<style>
+.contest-wrap{max-width:900px;margin:auto;padding:2rem 1rem 8rem}.contest-top{padding:3rem 1rem 1rem;text-align:center}.contest-top h1{font-size:clamp(2rem,6vw,3.3rem);margin:.5rem 0}.contest-sub{opacity:.8}.panel{border:1px solid rgba(79,124,116,.6);border-radius:12px;padding:1.3rem;margin:1.3rem 0;background:var(--void-deep)}.field{width:100%;padding:.8rem;border-radius:8px;background:var(--void-deep);color:var(--starlight);border:1px solid var(--teal)}.btn{background:var(--teal);color:white;border:0;border-radius:8px;padding:.8rem 1.2rem;cursor:pointer;font:600 1rem inherit}.btn:disabled{opacity:.45;cursor:not-allowed}.track{display:flex;align-items:center;gap:.8rem;border-bottom:1px solid rgba(79,124,116,.3);padding:.9rem 0}.track-name{flex:1;min-width:0;overflow-wrap:anywhere}.track button{background:transparent;border:1px solid var(--teal);border-radius:8px;color:var(--starlight);padding:.55rem;cursor:pointer}.track input{width:1.3rem;height:1.3rem;accent-color:var(--teal)}.muted{opacity:.75}.error{color:#ffb3a5}.success{color:#9ee1bc}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto}.hidden{display:none!important}audio{width:100%;margin-top:1rem}button:focus-visible,input:focus-visible{outline:2px solid var(--dune);outline-offset:3px}
+</style></head><body><div class="stars" aria-hidden="true"></div><header class="contest-top"><span class="eyebrow">Youth Group Music Project</span><h1>Producer Studio</h1><p class="contest-sub">One song. Four production teams. One shared achievement.</p></header><main class="contest-wrap">
+<section id="entry" class="panel"><h2>Enter your team code</h2><p>Use the code in your team's invitation link, or enter it below.</p><form id="entry-form"><label for="code">Team access code</label><input class="field" id="code" autocomplete="off" required placeholder="Enter code"><p><button class="btn">Open studio</button></p></form><p id="entry-status" role="alert"></p></section>
+<section id="studio" class="hidden"><div class="panel"><p class="eyebrow" id="team-label"></p><h2 id="song-title"></h2><p id="song-count"></p><h3>Lyrics</h3><pre id="lyrics" class="muted"></pre></div><div class="panel"><h2>Listen and nominate two takes</h2><p>Listen, discuss, and choose exactly two favorites as a team. The order does not imply a ranking.</p><div id="tracks"></div><audio id="audio" controls preload="none" aria-label="Audio preview"></audio></div><div class="panel"><h2>Team selections</h2><p id="selection-status" aria-live="polite">Choose two takes.</p><label for="notes">Why did you choose these? (optional)</label><textarea id="notes" class="field" rows="3" maxlength="1000" placeholder="What made these versions stand out?"></textarea><p><button id="submit" class="btn" disabled>Submit team nominations</button></p><p id="submit-status" role="status"></p></div></section>
+<p class="muted">These recordings are works in progress. Please do not share or publish them without permission.</p></main>
+<script>
+(()=>{
+'use strict';
+// Organizer setup: replace sample codes/folders, then configure SUBMISSION_ENDPOINT.
+// A code in a public HTML file is NOT authentication. All public-repo audio is publicly accessible.
+const TEAMS={
+  'DEMO-TEAM-1':{name:'Team 1',folder:'Contest-Team-1'},
+  'DEMO-TEAM-2':{name:'Team 2',folder:'Contest-Team-2'},
+  'DEMO-TEAM-3':{name:'Team 3',folder:'Contest-Team-3'},
+  'DEMO-TEAM-4':{name:'Team 4',folder:'Contest-Team-4'}
+};
+const SUBMISSION_ENDPOINT=''; // HTTPS endpoint that validates code, folder, exactly two IDs, and one vote per team.
+const API='https://api.github.com/repos/keithgrayson/keithgrayson.github.io/contents/Audio/';
+const BASE=new URL('Audio/',location.href);
+const el=id=>document.getElementById(id);
+let team=null,files=[],chosen=new Set();
+const url=(folder,file)=>new URL(encodeURIComponent(folder)+'/'+encodeURIComponent(file),BASE).href;
+const fetchEntries=async folder=>{const r=await fetch(API+encodeURIComponent(folder),{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw Error('Folder unavailable ('+r.status+').');const j=await r.json();if(!Array.isArray(j))throw Error('Invalid folder response.');return j;};
+async function openTeam(code){
+ const cfg=TEAMS[code];if(!cfg){el('entry-status').textContent='Unrecognized team code.';return;}
+ el('entry-status').textContent='Loading recordings…';
+ try{
+ const entries=await fetchEntries(cfg.folder);
+ files=entries.filter(f=>f.type==='file'&&/\.mp3$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+ if(!files.length)throw Error('No MP3 takes are available in this team folder yet.');
+ team={code,...cfg};chosen=new Set();el('team-label').textContent=cfg.name;el('song-title').textContent='Our Song';el('song-count').textContent=files.length+' available takes';
+ const readme=entries.find(f=>f.type==='file'&&f.name.toLowerCase()==='read.me');
+ if(readme){try{const s=await(await fetch(url(cfg.folder,readme.name))).text();const m=(s.split(/\r?\n/)[1]||'').match(/^\s*Title\s*:\s*(.*)/i);if(m&&m[1])el('song-title').textContent=m[1].trim();}catch{}}
+ const lf=entries.find(f=>f.type==='file'&&f.name.toLowerCase()==='lyrics.txt');
+ el('lyrics').textContent=lf?await(await fetch(url(cfg.folder,lf.name))).text():'Lyrics not available.';
+ const tracks=el('tracks');tracks.replaceChildren();
+ files.forEach((f,i)=>{
+ const row=document.createElement('div');row.className='track';
+ const play=document.createElement('button');play.type='button';play.textContent='▶';play.setAttribute('aria-label','Play take '+(i+1));play.onclick=()=>{el('audio').src=url(cfg.folder,f.name);el('audio').play().catch(()=>{});};
+ const name=document.createElement('span');name.className='track-name';name.textContent=f.name.replace(/\.mp3$/i,'');
+ const label=document.createElement('label');label.textContent=' Select';const check=document.createElement('input');check.type='checkbox';check.setAttribute('aria-label','Nominate '+f.name);check.onchange=()=>{if(check.checked){if(chosen.size>=2){check.checked=false;return;}chosen.add(f.name);}else chosen.delete(f.name);update();};label.prepend(check);
+ row.append(play,name,label);tracks.append(row);
+ });
+ el('entry').classList.add('hidden');el('studio').classList.remove('hidden');el('entry-status').textContent='';update();
+ }catch(e){el('entry-status').textContent=e.message;}
+}
+function update(){el('selection-status').textContent=chosen.size+' of 2 takes selected';el('submit').disabled=chosen.size!==2;}
+el('entry-form').onsubmit=e=>{e.preventDefault();openTeam(el('code').value.trim().toUpperCase());};
+el('submit').onclick=async()=>{
+ if(!team||chosen.size!==2)return;
+ const payload={teamCode:team.code,folder:team.folder,selections:[...chosen],notes:el('notes').value.trim()};
+ if(!SUBMISSION_ENDPOINT){
+ el('submit-status').textContent='Demo mode: voting has not been connected. Copy your selections and send them to the organizer; no vote has been recorded.';
+ const report=team.name+' | '+team.folder+'\n'+payload.selections.join('\n')+'\n'+payload.notes;
+ try{await navigator.clipboard.writeText(report);el('submit-status').textContent+=' Selections copied to clipboard.';}catch{el('submit-status').textContent+=' '+report;}
+ return;
+ }
+ el('submit').disabled=true;el('submit-status').textContent='Submitting…';
+ try{const r=await fetch(SUBMISSION_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok)throw Error('Submission rejected ('+r.status+').');el('submit-status').className='success';el('submit-status').textContent='Selections received. Thank you!';}
+ catch(e){el('submit-status').className='error';el('submit-status').textContent='Submission not saved: '+e.message;el('submit').disabled=false;}
+};
+const code=new URLSearchParams(location.search).get('code');if(code){el('code').value=code.toUpperCase();openTeam(code.toUpperCase());}
+})();
+</script></body></html>
