@@ -26,7 +26,7 @@ let team=null,files=[],chosen=new Set(),activeFile=null;
 const audio=el('audio');
 function setActive(file){activeFile=file;el('now-playing').textContent=file?'Now playing: '+file:'Nothing playing';document.querySelectorAll('.track').forEach(row=>{const on=row.dataset.file===file;row.classList.toggle('active',on);const btn=row.querySelector('button');if(btn)btn.textContent=on&&!audio.paused?'❚❚':'▶';});}
 audio.addEventListener('play',()=>setActive(activeFile));audio.addEventListener('pause',()=>setActive(activeFile));audio.addEventListener('ended',()=>setActive(null));
-const url=(folder,file)=>new URL(encodeURIComponent(folder)+'/'+encodeURIComponent(file),BASE).href;
+const url=(folder,file)=>new URL(folder.split('/').map(encodeURIComponent).join('/')+'/'+encodeURIComponent(file),BASE).href;
 const fetchEntries=async folder=>{const r=await fetch(API+encodeURIComponent(folder),{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw Error('Folder unavailable ('+r.status+').');const j=await r.json();if(!Array.isArray(j))throw Error('Invalid folder response.');return j;};
 async function openTeam(code){
  const cfg=TEAMS[code];if(!cfg){el('entry-status').textContent='Unrecognized team code.';return;}
